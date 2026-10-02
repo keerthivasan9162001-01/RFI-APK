@@ -32,9 +32,11 @@ public class PatrolService extends Service implements LocationListener {
             stopTracking();
             return START_NOT_STICKY;
         }
+        android.content.SharedPreferences p = getSharedPreferences("patrol", MODE_PRIVATE);
+        boolean wasActive = p.getBoolean("active", false);
         if (startedAt == 0L) startedAt = System.currentTimeMillis();
-        getSharedPreferences("patrol", MODE_PRIVATE).edit()
-                .putBoolean("active", true).putLong("started_at", startedAt).apply();
+        p.edit().putBoolean("active", true).putLong("started_at", startedAt).apply();
+        if (!wasActive) PatrolLog.add(this, "PATROL STARTED", "Foreground GPS tracking enabled");
         startForeground(41, buildNotification("Starting GPS…"));
         beginTracking();
         return START_STICKY;
@@ -51,8 +53,11 @@ public class PatrolService extends Service implements LocationListener {
     }
 
     private void stopTracking() {
+        android.content.SharedPreferences p = getSharedPreferences("patrol", MODE_PRIVATE);
+        boolean wasActive = p.getBoolean("active", false);
         try { if (lm != null) lm.removeUpdates(this); } catch (Exception ignored) {}
-        getSharedPreferences("patrol", MODE_PRIVATE).edit().putBoolean("active", false).apply();
+        if (wasActive) PatrolLog.add(this, "PATROL STOPPED", String.format(java.util.Locale.US, "Final distance: %.2f km", p.getFloat("distance_m",0f)/1000f));
+        p.edit().putBoolean("active", false).apply();
         sendBroadcast(new Intent(ACTION_UPDATE).setPackage(getPackageName()));
         if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE); else stopForeground(true);
         stopSelf();
@@ -105,5 +110,5 @@ public class PatrolService extends Service implements LocationListener {
     @Override public void onProviderEnabled(String provider) {}
     @Override public void onProviderDisabled(String provider) {}
     @Override public void onStatusChanged(String provider, int status, Bundle extras) {}
-    @Override public IBinder onBind(Intent intent) { return null; }
+    @Override public android.os.IBinder onBind(Intent intent) { return null; }
 }
