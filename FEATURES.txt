@@ -1,0 +1,27 @@
+RFI PHOTO PROOF v1.0
+
+CORE FEATURES
+- BEFORE / DURING / AFTER selection
+- RFI number
+- Activity
+- From and To chainage
+- LHS / RHS / Median / MCW / Service Road / Both Sides
+- Automatic date and time
+- Automatic GPS latitude / longitude / accuracy
+- Permanent watermark burned into the photo
+- Offline operation
+- Saves to Pictures/RFI Photo Proof
+- Direct Android share sheet / WhatsApp sharing
+- Remembers the last-entered fields
+- Local CSV evidence register
+
+SUGGESTED NEXT VERSION
+- Same-location overlay to help repeat the BEFORE camera angle for AFTER photo
+- Auto-pair BEFORE and AFTER under the same RFI
+- One-tap Before/After collage
+- PDF RFI photo annexure generation
+- Multiple photographs per RFI
+- Supervisor name / Team number
+- Clause number
+- Quantity field
+- Export CSV register
