@@ -104,12 +104,18 @@ public class MainActivity extends Activity {
         report.setOnClickListener(v -> showIncidentDialog());
         root.addView(report, mp(-1, dp(54), 8));
 
+        Button controlLog = actionButton("OPEN CONTROL LOG", Color.rgb(22,125,163));
+        controlLog.setOnClickListener(v -> startActivity(new Intent(this, ControlLogActivity.class)));
+        root.addView(controlLog, mp(-1, dp(54), 8));
+
         Button reset = actionButton("RESET TODAY'S DISTANCE", Color.rgb(95,106,120));
         reset.setOnClickListener(v -> new AlertDialog.Builder(this)
                 .setTitle("Reset distance?")
                 .setMessage("This clears only the distance counter on this phone.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Reset", (d,w) -> {
+                    float oldKm = getSharedPreferences("patrol", MODE_PRIVATE).getFloat("distance_m",0f) / 1000f;
+                    PatrolLog.add(this, "DISTANCE RESET", String.format(Locale.US, "Previous distance: %.2f km", oldKm));
                     getSharedPreferences("patrol", MODE_PRIVATE).edit().putFloat("distance_m",0f).apply();
                     refresh();
                 }).show());
@@ -123,7 +129,7 @@ public class MainActivity extends Activity {
         logCard.addView(incidents);
         root.addView(logCard, mp(-1,-2,8));
 
-        TextView note = text("Tracking continues with a foreground GPS service while the screen is locked. Keep Location enabled.", 12, Typeface.NORMAL, Color.GRAY);
+        TextView note = text("Control Log records patrol start/stop, incident reports and other control actions on this phone. GPS tracking continues with a foreground service while the screen is locked.", 12, Typeface.NORMAL, Color.GRAY);
         note.setPadding(dp(4), dp(8), dp(4), 0);
         root.addView(note);
         setContentView(sv);
@@ -183,7 +189,8 @@ public class MainActivity extends Activity {
         String next = line + (old == null || old.isEmpty()?"":"\n\n"+old);
         if (next.length() > 5000) next = next.substring(0,5000);
         p.edit().putString("incident_log",next).apply();
-        Toast.makeText(this,"Incident saved with current GPS",Toast.LENGTH_SHORT).show();
+        PatrolLog.add(this, "INCIDENT REPORTED — " + category, remarks.isEmpty() ? "No remarks" : remarks);
+        Toast.makeText(this,"Incident saved to Incident Log and Control Log",Toast.LENGTH_SHORT).show();
         refresh();
     }
 
