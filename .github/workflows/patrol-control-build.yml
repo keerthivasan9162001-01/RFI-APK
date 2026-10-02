@@ -1,0 +1,54 @@
+name: Build Patrol Control APK
+
+on:
+  push:
+    branches: [ patrol-control-build ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          SDKROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER=""
+          for candidate in             "$SDKROOT/cmdline-tools/latest/bin/sdkmanager"             "$SDKROOT/cmdline-tools/16.0/bin/sdkmanager"             "$SDKROOT/cmdline-tools/bin/sdkmanager"
+          do
+            if [ -x "$candidate" ]; then
+              SDKMANAGER="$candidate"
+              break
+            fi
+          done
+          if [ -z "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$SDKROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)"
+          fi
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found under $SDKROOT"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: gradle :patrol:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Patrol-Control-APK
+          path: patrol/build/outputs/apk/debug/patrol-debug.apk
